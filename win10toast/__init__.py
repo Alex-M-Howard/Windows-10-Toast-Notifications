@@ -58,6 +58,7 @@ class ToastNotifier(object):
     def __init__(self):
         """Initialize."""
         self._thread = None
+        self.destroy = None
 
     def _show_toast(self, title, msg,
                     icon_path, duration):
@@ -67,7 +68,10 @@ class ToastNotifier(object):
         :msg: notification message
         :icon_path: path to the .ico file to custom notification
         :duration: delay in seconds before notification self-destruction
-        """
+  
+	"""
+	
+
         message_map = {WM_DESTROY: self.on_destroy, }
 
         # Register the window class.
@@ -115,14 +119,18 @@ class ToastNotifier(object):
         return None
 
     def show_toast(self, title="Notification", msg="Here comes the message",
-                    icon_path=None, duration=5, threaded=False):
+                    icon_path=None, duration=5, threaded=False, destroy=True):
         """Notification settings.
 
         :title: notification title
         :msg: notification message
         :icon_path: path to the .ico file to custom notification
         :duration: delay in seconds before notification self-destruction
+	:destroy: chooses to not self-destruct
         """
+        
+        self.destroy = destroy
+	
         if not threaded:
             self._show_toast(title, msg, icon_path, duration)
         else:
@@ -149,9 +157,11 @@ class ToastNotifier(object):
         :wparam:
         :lparam:
         """
-        nid = (self.hwnd, 0)
-        Shell_NotifyIcon(NIM_DELETE, nid)
-        PostQuitMessage(0)
+        
+        if self.destroy:
+            nid = (self.hwnd, 0)
+            Shell_NotifyIcon(NIM_DELETE, nid)
+            PostQuitMessage(0)
 
         return None
 
